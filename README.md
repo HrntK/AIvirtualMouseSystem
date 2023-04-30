@@ -19,3 +19,6 @@ When all the fingers are up, color at the fingertips is detected.
 Requirements:
 -mediapipe
 -pyautogui
+-webcolors
+-numpy
+-openCV
