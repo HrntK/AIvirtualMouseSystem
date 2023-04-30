@@ -3,11 +3,19 @@ import time
 import numpy as np
 import hand_detector as hd
 import pyautogui
+import webcolors
 
+def get_color_name(rgb_tuple):
+    try:
+        color_name = webcolors.rgb_to_name(rgb_tuple)
+    except ValueError:
+        color_name = None
+    return color_name
 
 wCam, hCam = 640, 480
 frameR = 100
 smoothening = 7
+scroll_speed=10
 
 pTime = 0
 plocX, plocY = 0, 0
@@ -20,6 +28,7 @@ detector = hd.handDetector(detectionCon=0.7)
 wScr, hScr = pyautogui.size()
 print(wScr, hScr)
 
+
 while True:
     success, img = cap.read()
     img = detector.findHands(img)
@@ -27,12 +36,12 @@ while True:
     output = img.copy()
 
     if len(lmList) != 0:
-        # print(lmList[4], lmList[8])
         x1, y1 = lmList[8][1:]
         x2, y2 = lmList[12][1:]
+        x3, y3 = lmList[16][1:]
 
         fingers = detector.fingersUp()
-        # print(fingers)
+
         cv2.rectangle(img, (frameR, frameR), (wCam - frameR, hCam - frameR), (205, 250, 255), -1)
         img = cv2.addWeighted(img, 0.5, output, 1 - .5, 0, output)
 
@@ -50,7 +59,6 @@ while True:
             pyautogui.moveTo(wScr - clocX, clocY)
             cv2.circle(img, (x1, y1), 6, (255, 28, 0), cv2.FILLED)
             plocX, plocY = clocX, clocY
-            # cv2.putText(img, 'Moving Mode', (20, 50), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)
 
         # Both Index and middle fingers are up : Clicking Mode
         if fingers[1] == 1 and fingers[2] == 1:
@@ -60,13 +68,58 @@ while True:
             # Click mouse if distance short
             if length < 40:
                 cv2.circle(img, (lineInfo[4], lineInfo[5]), 6, (0, 255, 0), cv2.FILLED)
-                # cv2.putText(img, 'Click!!', (20, 50), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2)
                 pyautogui.click()
+
+        # Three fingers are up: Scrolling Mode up
+        if fingers[1] == 1 and fingers[2] == 1 and fingers[3] == 1:
+            if fingers[4]==0:
+                length, img, lineInfo = detector.findDistance(12, 16, img)
+                pyautogui.scroll(int(length / 2))
+            else:
+                # Convert Coordinates
+                x3 = np.interp(x1, (frameR, wCam - frameR), (0, 255))
+                y3 = np.interp(y1, (frameR, hCam - frameR), (0, 255))
+
+                # Get the RGB values of the pixel under the fingertip
+                pixel_color = img[int(y1), int(x1)]
+                r, g, b = pixel_color[2], pixel_color[1], pixel_color[0]
+
+                # Find the closest color name for the detected RGB values
+                color_name = webcolors.rgb_to_name((r, g, b))
+                print("Detected color: ", color_name)
+
+
+
+        # Three fingers are up: Scrolling mode down
+        if fingers[1] == 1 and fingers[2] == 1 and fingers[3] == 0 and fingers[4]==1:
+            length, img, lineInfo = detector.findDistance(12, 16, img)
+            scroll_speed=-int(length/2)
+            pyautogui.scroll(scroll_speed)
+
+        # Thumbs up: Take screenshot
+        if fingers[1] == 1 and fingers[2] == 0 and fingers[3] == 0 and fingers[4]==1:
+            img = pyautogui.screenshot()
+            img = np.array(img)
+            img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+            cv2.imwrite("screenshot.png", img)
+            time.sleep(5)
+
 
     cTime = time.time()
     fps = 1 / (cTime - pTime)
     pTime = cTime
 
-    cv2.imshow("Vitual mouse monitor", cv2.flip(img, 1))
-    cv2.setWindowProperty("Vitual mouse monitor", cv2.WND_PROP_TOPMOST, 1)
+    cv2.imshow("Virtual mouse monitor", cv2.flip(img, 1))
+    cv2.setWindowProperty("Virtual mouse monitor", cv2.WND_PROP_TOPMOST, 1)
     cv2.waitKey(1)
+
+
+
+
+
+
+
+
+
+
+
