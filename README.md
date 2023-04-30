@@ -11,6 +11,10 @@ The following are the group members:
 The gesture of single hand is used.
 When only one finger is used, it is in moving mode.
 When two fingers are joined, it performs a click operation.
+When first three fingers are up, Scrolling up operations is done.
+When first two and the little finger is up, scrolling down opeation is done.
+When index finger and little finger is up, screenshot is taken.
+When all the fingers are up, color at the fingertips is detected.
 
 Requirements:
 -mediapipe
