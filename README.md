@@ -8,3 +8,10 @@ The following are the group members:
 3. Chetanveer Singh - 102117054
 4. Vansh Sandhir - 102117060
 
+The gesture of single hand is used.
+When only one finger is used, it is in moving mode.
+When two fingers are joined, it performs a click operation.
+
+Requirements:
+-mediapipe
+-pyautogui
